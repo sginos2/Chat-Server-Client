@@ -3,12 +3,14 @@ const fs = require('fs');
 const file = fs.createWriteStream('./chat.log');
 let users = [];
 const server = net.createServer((socket) => {
+    let welcome = `Welcome ${socket.remotePort} to the chat server!`;
     users.push(socket);
-    socket.write('Welcome to the chat server!');
+    file.write(`${welcome}\n`);
+    socket.write(welcome);
     socket.setEncoding('utf-8');
     for(var i = 0; i < users.length; i++) {
         if (users[i] !== socket){
-            users[i].write(`Welcome ${socket.remotePort} to the chat!`);
+            users[i].write(welcome);
         }
     }
     socket.on('data', (data) => {
@@ -21,10 +23,15 @@ const server = net.createServer((socket) => {
         }
     });
     socket.on('end', () => {
-        socket.write(`${socket.remotePort} has disconnected.`);
+        for(var i = 0; i < users.length; i++) {
+            if (users[i] !== socket){
+                file.write(`${socket.remotePort} has disconnected.`);
+                users[i].write(`${socket.remotePort} has disconnected.`);
+            }
+        }
     })
 });
 
-server.listen(5000);
+server.listen(3000);
 
-console.log('Listening on port 5000');
+console.log('Listening on port 3000');
